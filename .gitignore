@@ -1,0 +1,12 @@
+node_modules/
+dist/
+dist-electron/
+.vite/
+*.log
+projects/
+exports/
+release/
+release-*/
+tmp-reference-frames/
+.env
+.env.*
