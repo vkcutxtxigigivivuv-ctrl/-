@@ -1,74 +1,82 @@
-# 拉片工具
+# Shot Study Tool 拉片工具
 
-基于 Electron + React + FFmpeg 的本地拉片工作台。
+一个面向拉片、截图整理、画面备注和素材管理的本地桌面工具。  
+当前版本以 Windows 桌面应用为主，基于 Electron、React 和 FFmpeg 构建。
 
-## 当前 MVP
+## 当前状态
 
-- 导入本地视频文件
-- 播放、暂停、拖动时间轴、按秒前后移动
-- 使用 FFmpeg 从原视频截取当前时间点的原分辨率 PNG 图片
-- 截图列表管理
-- 为单张截图添加备注和标签
-- 保存项目为 `project.json`
-- 批量导出截图、`notes.csv` 和项目数据
+项目处于早期可用版本，已经支持完整的「导入影片 -> 截图 -> 备注/打标签 -> 素材库管理 -> 导出」流程。
 
-## 启动
+适合用于：
 
-```bash
-npm.cmd install
-npm.cmd start
-```
+- 电影、剧集、广告、MV 的画面分析。
+- 按时间码截取原画质图片。
+- 给截图记录构图、运镜、光线、调度等备注。
+- 建立自己的拉片截图素材库。
+- 将截图导出给 Eagle、Billfish 等图片管理软件继续整理。
 
-如果在命令行启动，需要先进入项目目录：
+## 下载使用
 
-```cmd
-cd /d C:\Users\Administrator\Documents\拉片工具
-npm.cmd start
-```
+普通用户不需要安装 Node.js，也不需要运行命令。
 
-## 打包为 exe
-
-生成可直接运行的 Windows 应用文件夹：
-
-```cmd
-cd /d C:\Users\Administrator\Documents\拉片工具
-npm.cmd run dist:dir
-```
-
-生成后双击：
+前往 GitHub Releases 下载最新版 Windows 包：
 
 ```text
-C:\Users\Administrator\Documents\拉片工具\release-adaptive-cinema-ui\win-unpacked\ShotStudyTool.exe
+ShotStudyTool Setup <version>.exe
 ```
 
-注意：`win-unpacked` 是一个完整应用文件夹，移动时要整个文件夹一起移动，不能只移动单独的 exe。
+或下载便携版：
 
-如果 Electron 下载失败，可以使用镜像重新安装：
-
-```powershell
-$env:ELECTRON_MIRROR='https://npmmirror.com/mirrors/electron/'
-npm.cmd rebuild electron
+```text
+ShotStudyTool <version>.exe
 ```
 
-## FFmpeg
+建议优先使用安装版。便携版适合临时测试或放在移动硬盘中使用。
 
-项目默认使用 `@ffmpeg-installer/ffmpeg` 内置的 Windows FFmpeg。也可以通过环境变量指定自己的 FFmpeg：
+## 主要功能
 
-```powershell
-$env:FFMPEG_PATH='D:\tools\ffmpeg\bin\ffmpeg.exe'
-npm.cmd start
-```
+- 导入本地视频文件。
+- 显示当前时间码和视频总时长。
+- 播放、暂停、拖动进度条、前后跳秒。
+- 放大播放区，专注查看画面细节。
+- 添加时间轴标记，并点击标记快速跳转。
+- 使用 FFmpeg 截取当前帧，保留原视频分辨率。
+- 截图列表支持筛选、排序、单张导出、批量删除。
+- 右侧备注面板可收起。
+- 单张截图支持备注、描述、标签。
+- 全局图片素材库保留所有已截取图片。
+- 素材库支持按项目、标签、关键词筛选。
+- 素材库图片可编辑备注和标签。
+- 支持导出 PNG 或 JPG 图片。
+- 支持普通图片导出、Eagle 导出、Billfish 导出。
 
-## 项目数据
+## 快捷键
 
-默认保存到系统文档目录下的 `拉片工具项目/<项目ID>/`，结构大致为：
+| 快捷键 | 功能 |
+| --- | --- |
+| `Space` | 播放 / 暂停 |
+| `←` / `→` | 后退 / 前进 1 秒 |
+| `Shift + ←` / `Shift + →` | 后退 / 前进 5 秒 |
+| `,` / `.` | 微调前后约 0.04 秒 |
+| `C` | 截图 |
+| `M` | 添加标记 |
+| `F` | 放大 / 退出放大播放区 |
+| `Esc` | 退出放大播放区 |
+| `Ctrl + S` | 保存项目 |
+
+在备注、标签、搜索框里输入文字时，快捷键不会误触发。
+
+## 数据保存
+
+项目数据和截图默认保存在本机应用数据目录中。  
+每个项目大致包含：
 
 ```text
 project.json
 images/
 ```
 
-导出时会生成：
+导出时可生成：
 
 ```text
 images/
@@ -77,19 +85,48 @@ notes.json
 report.md
 report.html
 project.json
+metadata.json
+eagle-tags.csv
+billfish-metadata.csv
+billfish-metadata.json
 ```
 
-导出前可选择图片格式：
+## 开发运行
 
-- `PNG 原图`：保留无损 PNG。
-- `JPG 原图`：保持原分辨率，导出为高质量 JPG。
+```bash
+npm.cmd install
+npm.cmd start
+```
 
-导出的 `notes.csv`、`notes.json`、`report.md`、`report.html` 会包含图片格式、宽高、文件大小和源截图路径。
+## 构建 Windows 应用
 
-## 下一步建议
+```bash
+npm.cmd run dist
+```
 
-- 增加逐帧前进/后退
-- 增加快捷键截图
-- 增加镜号、景别、运镜、光线等结构化拉片字段
-- 增加图片标注
-- 增加 PDF / Word 图文报告导出
+构建产物会生成到：
+
+```text
+release/
+```
+
+其中包含安装版和便携版。
+
+## FFmpeg
+
+项目默认使用 `@ffmpeg-installer/ffmpeg` 内置的 Windows FFmpeg。
+
+如需使用自定义 FFmpeg：
+
+```powershell
+$env:FFMPEG_PATH='<path-to-ffmpeg.exe>'
+npm.cmd start
+```
+
+## 后续计划
+
+- 优化素材库批量编辑能力。
+- 增加更多结构化拉片字段。
+- 增加更完整的报告导出模板。
+- 优化大视频加载和连续截图性能。
+- 增加自动更新或版本提示。

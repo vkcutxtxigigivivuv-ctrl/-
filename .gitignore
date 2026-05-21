@@ -8,5 +8,6 @@ exports/
 release/
 release-*/
 tmp-reference-frames/
+.electron-builder-cache/
 .env
 .env.*
