@@ -596,6 +596,8 @@ textarea::placeholder {
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.055), rgba(255, 255, 255, 0.012)),
     rgba(17, 21, 30, 0.94);
+  content-visibility: auto;
+  contain-intrinsic-size: 84px;
 }
 
 .shot-card::before {
@@ -1073,6 +1075,7 @@ textarea::placeholder {
   padding: 0;
   overflow: hidden;
   background: rgba(0, 0, 0, 0.34);
+  contain-intrinsic-size: 168px 250px;
 }
 
 .library-view .shot-card.library-card::before {

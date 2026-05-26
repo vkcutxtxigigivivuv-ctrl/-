@@ -10,5 +10,6 @@ contextBridge.exposeInMainWorld("shotStudy", {
   listLibraryImages: () => ipcRenderer.invoke("library:list-images"),
   updateLibraryImage: (request) => ipcRenderer.invoke("library:update-image", request),
   revealInFolder: (filePath) => ipcRenderer.invoke("file:reveal", filePath),
+  openFile: (filePath) => ipcRenderer.invoke("file:open", filePath),
   exportProject: (request) => ipcRenderer.invoke("project:export", request)
 });

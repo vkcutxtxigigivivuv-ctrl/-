@@ -53,6 +53,34 @@ function fileUrl(filePath: string) {
   return pathToFileURL(filePath).toString();
 }
 
+function thumbnailPathFor(imagePath: string) {
+  return path.join(path.dirname(path.dirname(imagePath)), "thumbnails", `${path.parse(imagePath).name}.jpg`);
+}
+
+async function ensureThumbnail(imagePath: string) {
+  const thumbnailPath = thumbnailPathFor(imagePath);
+
+  try {
+    const [sourceStat, thumbnailStat] = await Promise.all([fs.stat(imagePath), fs.stat(thumbnailPath)]);
+    if (thumbnailStat.mtimeMs >= sourceStat.mtimeMs) {
+      return { thumbnailPath, thumbnailUrl: fileUrl(thumbnailPath) };
+    }
+  } catch {
+    // Missing thumbnail or source stat error falls through to regeneration.
+  }
+
+  try {
+    await ensureDir(path.dirname(thumbnailPath));
+    const source = nativeImage.createFromPath(imagePath);
+    if (source.isEmpty()) return {};
+    const resized = source.resize({ width: 480, quality: "good" });
+    await fs.writeFile(thumbnailPath, resized.toJPEG(72));
+    return { thumbnailPath, thumbnailUrl: fileUrl(thumbnailPath) };
+  } catch {
+    return {};
+  }
+}
+
 function escapeCsv(value: string) {
   return `"${value.replace(/"/g, '""')}"`;
 }
@@ -137,32 +165,42 @@ async function listProjects(): Promise<ProjectData[]> {
 
 async function listLibraryImages(): Promise<LibraryImage[]> {
   const projects = await listProjects();
-  return projects
-    .flatMap((project) =>
-      project.shots.map((shot) => ({
+  const images = await Promise.all(
+    projects.flatMap((project) =>
+      project.shots.map(async (shot) => {
+        const thumbnail = shot.thumbnailUrl ? {} : await ensureThumbnail(shot.imagePath);
+        return {
         id: shot.id,
         projectId: project.id,
         projectTitle: project.title,
         imagePath: shot.imagePath,
         imageUrl: fileUrl(shot.imagePath),
+        thumbnailPath: shot.thumbnailPath ?? thumbnail.thumbnailPath,
+        thumbnailUrl: shot.thumbnailUrl ?? thumbnail.thumbnailUrl,
         time: shot.time,
         timecode: shot.timecode,
         note: shot.note,
         tags: shot.tags,
         createdAt: shot.createdAt,
         videoName: project.video?.name
-      }))
+        };
+      })
     )
-    .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+  );
+
+  return images.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
 }
 
-function toLibraryImage(project: ProjectData, shot: ProjectData["shots"][number]): LibraryImage {
+async function toLibraryImage(project: ProjectData, shot: ProjectData["shots"][number]): Promise<LibraryImage> {
+  const thumbnail = shot.thumbnailUrl ? {} : await ensureThumbnail(shot.imagePath);
   return {
     id: shot.id,
     projectId: project.id,
     projectTitle: project.title,
     imagePath: shot.imagePath,
     imageUrl: fileUrl(shot.imagePath),
+    thumbnailPath: shot.thumbnailPath ?? thumbnail.thumbnailPath,
+    thumbnailUrl: shot.thumbnailUrl ?? thumbnail.thumbnailUrl,
     time: shot.time,
     timecode: shot.timecode,
     note: shot.note,
@@ -246,8 +284,9 @@ ipcMain.handle("video:save-captured-frame", async (_event, request: SaveCaptured
   const outputPath = path.join(imageDir, fileName);
   const base64 = request.dataUrl.replace(/^data:image\/png;base64,/, "");
   await fs.writeFile(outputPath, Buffer.from(base64, "base64"));
+  const thumbnail = await ensureThumbnail(outputPath);
 
-  return { path: outputPath, url: fileUrl(outputPath), fileName };
+  return { path: outputPath, url: fileUrl(outputPath), ...thumbnail, fileName };
 });
 
 ipcMain.handle("project:save", async (_event, project: ProjectData) => {
@@ -298,6 +337,11 @@ ipcMain.handle("library:update-image", async (_event, request: UpdateLibraryImag
 
 ipcMain.handle("file:reveal", async (_event, filePath: string): Promise<void> => {
   shell.showItemInFolder(filePath);
+});
+
+ipcMain.handle("file:open", async (_event, filePath: string): Promise<void> => {
+  const error = await shell.openPath(filePath);
+  if (error) throw new Error(error);
 });
 
 ipcMain.handle("project:open", async (event): Promise<ProjectData | null> => {

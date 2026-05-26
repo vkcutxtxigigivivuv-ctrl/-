@@ -9,6 +9,8 @@ export type ShotItem = {
   id: string;
   imagePath: string;
   imageUrl: string;
+  thumbnailPath?: string;
+  thumbnailUrl?: string;
   time: number;
   timecode: string;
   note: string;
@@ -50,6 +52,8 @@ export type LibraryImage = {
   projectTitle: string;
   imagePath: string;
   imageUrl: string;
+  thumbnailPath?: string;
+  thumbnailUrl?: string;
   time: number;
   timecode: string;
   note: string;
@@ -78,6 +82,8 @@ export type SaveCapturedFrameRequest = {
 export type CaptureFrameResult = {
   path: string;
   url: string;
+  thumbnailPath?: string;
+  thumbnailUrl?: string;
   fileName: string;
 };
 
@@ -103,6 +109,7 @@ export type AppBridge = {
   listLibraryImages: () => Promise<LibraryImage[]>;
   updateLibraryImage: (request: UpdateLibraryImageRequest) => Promise<LibraryImage>;
   revealInFolder: (filePath: string) => Promise<void>;
+  openFile: (filePath: string) => Promise<void>;
   exportProject: (request: ExportProjectRequest) => Promise<ExportProjectResult | null>;
 };
 

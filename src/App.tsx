@@ -237,6 +237,8 @@ export function App() {
         id: makeId(),
         imagePath: result.path,
         imageUrl: result.url,
+        thumbnailPath: result.thumbnailPath,
+        thumbnailUrl: result.thumbnailUrl,
         time,
         timecode: formatTime(time),
         note: "",
@@ -389,6 +391,15 @@ export function App() {
   async function revealActiveImage() {
     if (!activeImage) return;
     await getBridge().revealInFolder(activeImage.imagePath);
+  }
+
+  async function openImageFile(imagePath: string) {
+    try {
+      await getBridge().openFile(imagePath);
+    } catch (error) {
+      console.error(error);
+      setStatus("无法打开图片，请检查系统默认图片查看器");
+    }
   }
 
   async function addLibraryTag() {
@@ -803,6 +814,8 @@ export function App() {
                   id: image.id,
                   imagePath: image.imagePath,
                   imageUrl: image.imageUrl,
+                  thumbnailPath: image.thumbnailPath,
+                  thumbnailUrl: image.thumbnailUrl,
                   time: image.time,
                   timecode: image.timecode,
                   note: image.note,
@@ -840,8 +853,14 @@ export function App() {
                       setSelectedShotId(shot.id);
                     }
                   }}
+                  onDoubleClick={() => viewMode === "library" && void openImageFile(shot.imagePath)}
                 >
-                  <img src={shot.imageUrl} alt={shot.timecode} />
+                  <img
+                    src={shot.thumbnailUrl ?? shot.imageUrl}
+                    alt={shot.timecode}
+                    loading="lazy"
+                    decoding="async"
+                  />
                 </button>
                 {viewMode === "film" ? (
                   <>
